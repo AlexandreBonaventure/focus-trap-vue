@@ -1,16 +1,16 @@
-import {
-  defineComponent,
-  onMounted,
-  watch,
-  ref,
-  cloneVNode,
-  onUnmounted,
-  PropType,
-  Comment,
-} from 'vue'
-import { createFocusTrap, FocusTrap as FocusTrapI } from 'focus-trap'
+/*!
+ * focus-trap-vue v3.0.1
+ * (c) 2020 Eduardo San Martin Morote
+ * @license MIT
+ */
+'use strict'
 
-export const FocusTrap = defineComponent({
+Object.defineProperty(exports, '__esModule', { value: true })
+
+var vue = require('vue')
+var focusTrap = require('focus-trap')
+
+const FocusTrap = vue.defineComponent({
   props: {
     active: {
       // TODO: could be options for activate
@@ -30,25 +30,23 @@ export const FocusTrap = defineComponent({
       default: true,
     },
     initialFocus: {
-      type: [String, Function] as PropType<string | (() => HTMLElement)>,
+      type: [String, Function],
     },
     fallbackFocus: {
-      type: [String, Function] as PropType<string | (() => HTMLElement)>,
+      type: [String, Function],
     },
   },
-
   setup(props, { slots, emit }) {
-    let trap: FocusTrapI | null
-    const el = ref<HTMLElement | null>(null)
-
-    onMounted(() => {
-      watch(
+    let trap
+    const el = vue.ref(null)
+    vue.onMounted(() => {
+      vue.watch(
         () => props.active,
         active => {
           const { initialFocus } = props
           if (active && el.value) {
             // has no effect if already activated
-            trap = createFocusTrap(el.value, {
+            trap = focusTrap.createFocusTrap(el.value, {
               escapeDeactivates: props.escapeDeactivates,
               allowOutsideClick: () => props.allowOutsideClick,
               returnFocusOnDeactivate: props.returnFocusOnDeactivate,
@@ -75,27 +73,20 @@ export const FocusTrap = defineComponent({
         { immediate: true, flush: 'post' }
       )
     })
-
-    onUnmounted(() => {
+    vue.onUnmounted(() => {
       if (trap) trap.deactivate()
       trap = null
     })
-
     return () => {
       if (!slots.default) return null
-
-      const vNodes = slots.default().filter(vnode => vnode.type !== Comment)
+      const vNodes = slots.default().filter(vnode => vnode.type !== vue.Comment)
       if (!vNodes || !vNodes.length || vNodes.length > 1) {
-        if (__DEV__) {
-          console.error(
-            '[focus-trap-vue]: FocusTrap requires exactly one child.'
-          )
-        }
-
         return vNodes
       }
-      const vnode = cloneVNode(vNodes[0], { ref: el })
+      const vnode = vue.cloneVNode(vNodes[0], { ref: el })
       return vnode
     }
   },
 })
+
+exports.FocusTrap = FocusTrap

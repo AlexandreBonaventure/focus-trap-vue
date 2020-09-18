@@ -1,16 +1,20 @@
+/*!
+ * focus-trap-vue v3.0.1
+ * (c) 2020 Eduardo San Martin Morote
+ * @license MIT
+ */
 import {
   defineComponent,
+  ref,
   onMounted,
   watch,
-  ref,
-  cloneVNode,
   onUnmounted,
-  PropType,
   Comment,
+  cloneVNode,
 } from 'vue'
-import { createFocusTrap, FocusTrap as FocusTrapI } from 'focus-trap'
+import { createFocusTrap } from 'focus-trap'
 
-export const FocusTrap = defineComponent({
+const FocusTrap = defineComponent({
   props: {
     active: {
       // TODO: could be options for activate
@@ -30,17 +34,15 @@ export const FocusTrap = defineComponent({
       default: true,
     },
     initialFocus: {
-      type: [String, Function] as PropType<string | (() => HTMLElement)>,
+      type: [String, Function],
     },
     fallbackFocus: {
-      type: [String, Function] as PropType<string | (() => HTMLElement)>,
+      type: [String, Function],
     },
   },
-
   setup(props, { slots, emit }) {
-    let trap: FocusTrapI | null
-    const el = ref<HTMLElement | null>(null)
-
+    let trap
+    const el = ref(null)
     onMounted(() => {
       watch(
         () => props.active,
@@ -75,23 +77,19 @@ export const FocusTrap = defineComponent({
         { immediate: true, flush: 'post' }
       )
     })
-
     onUnmounted(() => {
       if (trap) trap.deactivate()
       trap = null
     })
-
     return () => {
       if (!slots.default) return null
-
       const vNodes = slots.default().filter(vnode => vnode.type !== Comment)
       if (!vNodes || !vNodes.length || vNodes.length > 1) {
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
           console.error(
             '[focus-trap-vue]: FocusTrap requires exactly one child.'
           )
         }
-
         return vNodes
       }
       const vnode = cloneVNode(vNodes[0], { ref: el })
@@ -99,3 +97,5 @@ export const FocusTrap = defineComponent({
     }
   },
 })
+
+export { FocusTrap }
